@@ -40,12 +40,12 @@ class VectorService {
       const tableNames = await this.db.tableNames();
       if (tableNames.includes(TABLE_NAME)) {
         this.table = await this.db.openTable(TABLE_NAME);
-        console.log(`Table ${TABLE_NAME} already exists`);
+        console.error(`Table ${TABLE_NAME} already exists`);
         // 如果表已存在，尝试从现有数据推断向量维度
         await this.detectVectorDimension();
       } else {
         // 表不存在，需要先获取向量维度
-        console.log(`Creating new table ${TABLE_NAME}`);
+        console.error(`Creating new table ${TABLE_NAME}`);
         await this.detectVectorDimension();
         
         // 使用检测到的向量维度创建示例向量
@@ -62,11 +62,11 @@ class VectorService {
         });
         // 删除示例数据
         await this.table.delete('content = ""');
-        console.log(`Table ${TABLE_NAME} created successfully with vector dimension ${this.vectorDimension}`);
+        console.error(`Table ${TABLE_NAME} created successfully with vector dimension ${this.vectorDimension}`);
       }
     } catch (error) {
       // 如果 openTable 失败，尝试创建新表
-      console.log(`Table ${TABLE_NAME} not found, creating new table`);
+      console.error(`Table ${TABLE_NAME} not found, creating new table`);
       try {
         await this.detectVectorDimension();
         const sampleVector = new Array(this.vectorDimension || 768).fill(0);
@@ -81,7 +81,7 @@ class VectorService {
           existOk: false,
         });
         await this.table.delete('content = ""');
-        console.log(`Table ${TABLE_NAME} created successfully with vector dimension ${this.vectorDimension}`);
+        console.error(`Table ${TABLE_NAME} created successfully with vector dimension ${this.vectorDimension}`);
       } catch (createError) {
         console.error(`Error creating table ${TABLE_NAME}:`, createError);
         throw createError;
@@ -97,7 +97,7 @@ class VectorService {
     try {
       const testEmbedding = await this.getEmbedding('test');
       this.vectorDimension = testEmbedding.length;
-      console.log(`Detected vector dimension: ${this.vectorDimension} for model ${EMBED_MODEL}`);
+      console.error(`Detected vector dimension: ${this.vectorDimension} for model ${EMBED_MODEL}`);
     } catch (error) {
       console.warn(`Failed to detect vector dimension, using default 768:`, error);
       this.vectorDimension = 768; // 默认值
@@ -196,7 +196,7 @@ class FileWatcher {
         }
       }
 
-      console.log(`Processed ${paragraphs.length} paragraphs from ${filePath}`);
+      console.error(`Processed ${paragraphs.length} paragraphs from ${filePath}`);
     } catch (error) {
       console.error(`Error processing file ${filePath}:`, error);
     }
@@ -221,30 +221,30 @@ class FileWatcher {
   }
 
   async fullScan() {
-    console.log(`Starting full scan of ${this.obsidianPath}`);
+    console.error(`Starting full scan of ${this.obsidianPath}`);
     await this.scanDirectory(this.obsidianPath);
-    console.log('Full scan completed');
+    console.error('Full scan completed');
   }
 
   startWatching() {
     this.watcher
       .on('add', (filePath: string) => {
-        console.log(`File added: ${filePath}`);
+        console.error(`File added: ${filePath}`);
         this.processFile(filePath).catch(console.error);
       })
       .on('change', (filePath: string) => {
-        console.log(`File changed: ${filePath}`);
+        console.error(`File changed: ${filePath}`);
         this.processFile(filePath).catch(console.error);
       })
       .on('unlink', async (filePath: string) => {
-        console.log(`File deleted: ${filePath}`);
+        console.error(`File deleted: ${filePath}`);
         await this.vectorService.deleteByFilePath(filePath);
       })
       .on('error', (error: unknown) => {
         console.error('Watcher error:', error);
       });
 
-    console.log(`Watching for changes in ${this.obsidianPath}`);
+    console.error(`Watching for changes in ${this.obsidianPath}`);
   }
 
   stop() {
@@ -328,7 +328,7 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  console.log('Obsidian Lumina MCP Server started');
+  console.error('Obsidian Lumina MCP Server started');
 }
 
 main().catch((error) => {

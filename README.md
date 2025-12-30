@@ -56,9 +56,23 @@ DB_PATH=./.lancedb
 
 ## 使用方法
 
+### 快速开始
+
+1. **启动服务器**:
+   ```bash
+   npm run dev
+   ```
+   服务器会持续运行，监控文件变化并提供搜索服务。
+
+2. **配置 MCP 客户端**:
+   - 使用 MCP Inspector 进行测试（见下方）
+   - 或配置 Claude Desktop 进行实际使用（见下方）
+
+详细使用说明请参考 `USAGE_GUIDE.md`。
+
 ### 开发模式
 
-使用 ts-node 直接运行（无需编译）:
+使用 tsx 直接运行（无需编译）:
 
 ```bash
 npm run dev
@@ -76,9 +90,27 @@ npm run dev
    npm start
    ```
 
-## MCP 客户端配置
+## 使用 MCP 服务
 
-### Claude Desktop
+### 方式 1: 使用 MCP Inspector（测试）
+
+1. **启动 Inspector**:
+   ```bash
+   mcp-inspector
+   ```
+
+2. **配置服务器**:
+   - Command: `node`
+   - Args: `[项目绝对路径]/dist/index.js`
+   - Environment Variables: 设置 `OBSIDIAN_PATH`, `EMBED_MODEL`, `DB_PATH`
+
+3. **测试工具**: 选择 `search_notes` 工具并输入查询
+
+详细步骤请参考 `USAGE_GUIDE.md` 或 `MCP_TEST_GUIDE.md`。
+
+### 方式 2: 使用 Claude Desktop（实际使用）
+
+#### 找到配置文件
 
 在 Claude Desktop 的配置文件中添加以下配置:
 
@@ -155,6 +187,16 @@ npm run dev
    - 存储到 LanceDB
 4. **实时监控**: 使用 chokidar 监控文件变化，自动更新索引
 5. **搜索**: 将查询转换为向量，在 LanceDB 中执行向量相似度搜索
+
+## MCP 规范遵循
+
+本项目严格遵循 [Model Context Protocol 规范](https://modelcontextprotocol.io/specification)：
+
+- ✅ **STDIO 传输规范**: 所有日志输出使用 `console.error()` 写入 stderr，确保不会干扰 JSON-RPC 消息传输
+- ✅ **工具注册**: 使用标准的 MCP SDK 注册工具，提供类型安全的接口
+- ✅ **错误处理**: 符合 MCP 错误响应格式，确保客户端能正确处理错误情况
+
+**重要**: 对于 STDIO 传输的 MCP 服务器，绝对不能向 stdout 写入任何内容（包括 `console.log()`），这会破坏 JSON-RPC 消息。本项目所有日志都输出到 stderr。
 
 ## 故障排除
 

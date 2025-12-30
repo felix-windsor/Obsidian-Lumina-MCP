@@ -1,0 +1,72 @@
+MCP TypeScript SDK
+Important
+
+This is the main branch which contains v2 of the SDK (currently in development, pre-alpha).
+
+We anticipate a stable v2 release in Q1 2026. Until then, v1.x remains the recommended version for production use. v1.x will continue to receive bug fixes and security updates for at least 6 months after v2 ships to give people time to upgrade.
+
+For v1 documentation and code, see the v1.x branch.
+
+NPM Version NPM Version MIT licensed
+
+Table of Contents
+Overview
+The Model Context Protocol (MCP) allows applications to provide context for LLMs in a standardized way, separating the concerns of providing context from the actual LLM interaction.
+
+This repository contains the TypeScript SDK implementation of the MCP specification and ships:
+
+MCP server libraries (tools/resources/prompts, Streamable HTTP, stdio, auth helpers)
+MCP client libraries (transports, high-level helpers, OAuth helpers)
+Runnable examples (under examples/)
+Packages
+This monorepo publishes split packages:
+
+@modelcontextprotocol/server: build MCP servers
+@modelcontextprotocol/client: build MCP clients
+Both packages have a required peer dependency on zod for schema validation. The SDK internally imports from zod/v4, but remains compatible with projects using Zod v3.25+.
+
+Installation
+Server
+npm install @modelcontextprotocol/server zod
+Client
+npm install @modelcontextprotocol/client zod
+Quick Start (runnable examples)
+The runnable examples live under examples/ and are kept in sync with the docs.
+
+Install dependencies (from repo root):
+pnpm install
+Run a Streamable HTTP example server:
+pnpm --filter @modelcontextprotocol/examples-server exec tsx src/simpleStreamableHttp.ts
+Alternatively, from within the example package:
+
+cd examples/server
+pnpm tsx src/simpleStreamableHttp.ts
+Run the interactive client in another terminal:
+pnpm --filter @modelcontextprotocol/examples-client exec tsx src/simpleStreamableHttp.ts
+Alternatively, from within the example package:
+
+cd examples/client
+pnpm tsx src/simpleStreamableHttp.ts
+Next steps:
+
+Server examples index: examples/server/README.md
+Client examples index: examples/client/README.md
+Guided walkthroughs: docs/server.md and docs/client.md
+Documentation
+Local SDK docs:
+docs/server.md – building MCP servers, transports, tools/resources/prompts, CORS, DNS rebinding, and deployment patterns.
+docs/client.md – using the high-level client, transports, backwards compatibility, and OAuth helpers.
+docs/capabilities.md – sampling, elicitation (form and URL), and experimental task-based execution.
+docs/faq.md – environment and troubleshooting FAQs (including Node.js Web Crypto support).
+External references:
+Model Context Protocol documentation
+MCP Specification
+Example Servers
+v1 (legacy) documentation and fixes
+If you are using the v1 generation of the SDK, the v1 documentation (and any v1-specific fixes) live on the long-lived v1.x branch. See: https://github.com/modelcontextprotocol/typescript-sdk/tree/v1.x.
+
+Contributing
+Issues and pull requests are welcome on GitHub at https://github.com/modelcontextprotocol/typescript-sdk.
+
+License
+This project is licensed under the MIT License—see the LICENSE file for details.

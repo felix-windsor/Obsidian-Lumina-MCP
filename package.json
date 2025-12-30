@@ -8,7 +8,8 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "test": "tsc scripts/test-basic.ts --outDir dist/scripts --module nodenext --target esnext --moduleResolution nodenext --esModuleInterop && node dist/scripts/test-basic.js",
-    "test:basic": "tsc scripts/test-basic.ts --outDir dist/scripts --module nodenext --target esnext --moduleResolution nodenext --esModuleInterop && node dist/scripts/test-basic.js"
+    "test:basic": "tsc scripts/test-basic.ts --outDir dist/scripts --module nodenext --target esnext --moduleResolution nodenext --esModuleInterop && node dist/scripts/test-basic.js",
+    "test:server": "tsc scripts/test-server.ts --outDir dist/scripts --module nodenext --target esnext --moduleResolution nodenext --esModuleInterop && node dist/scripts/test-server.js"
   },
   "keywords": [],
   "author": "",
