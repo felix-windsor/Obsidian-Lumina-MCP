@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { readFileSync, statSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { join, resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import chokidar from 'chokidar';
 import type { FSWatcher } from 'chokidar';
 import { Ollama } from 'ollama';
@@ -12,7 +13,33 @@ import { z } from 'zod';
 // 环境变量
 const OBSIDIAN_PATH = process.env.OBSIDIAN_PATH;
 const EMBED_MODEL = process.env.EMBED_MODEL || 'nomic-embed-text';
-const DB_PATH = process.env.DB_PATH || './.lancedb';
+
+// 获取项目根目录（确保 DB_PATH 是绝对路径）
+// 如果是从 dist/index.js 运行，需要找到项目根目录
+const getProjectRoot = () => {
+  // 尝试从 __dirname 或 import.meta.url 获取
+  try {
+    // ESM 模式
+    if (typeof import.meta !== 'undefined' && import.meta.url) {
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+      // dist/index.js -> 项目根目录
+      return resolve(__dirname, '..');
+    }
+  } catch {
+    // 忽略错误
+  }
+  // 回退到当前工作目录
+  return process.cwd();
+};
+
+const PROJECT_ROOT = getProjectRoot();
+const DB_PATH_RELATIVE = process.env.DB_PATH || './.lancedb';
+// 将相对路径转换为绝对路径
+const DB_PATH = DB_PATH_RELATIVE.startsWith('/') || (process.platform === 'win32' && DB_PATH_RELATIVE.match(/^[A-Z]:/))
+  ? DB_PATH_RELATIVE
+  : resolve(PROJECT_ROOT, DB_PATH_RELATIVE);
+
 const TABLE_NAME = 'notes';
 
 if (!OBSIDIAN_PATH) {
@@ -154,6 +181,30 @@ class VectorService {
       // 删除失败不影响主流程，继续执行
     }
   }
+
+  async getFileLastModified(filePath: string): Promise<number | null> {
+    // 查询数据库中该文件的最后修改时间
+    // 注意：LanceDB 的查询 API 可能不支持 where，所以使用内存过滤
+    try {
+      // 获取足够多的记录来查找匹配的文件
+      // 对于大量数据，这可能需要优化，但作为初始实现是可行的
+      const allResults = await this.table.query().limit(50000).toArray();
+      
+      // 在内存中过滤匹配的文件路径
+      const matchingResults = allResults.filter((result: any) => 
+        result.filePath === filePath
+      );
+      
+      if (matchingResults.length > 0) {
+        // 返回该文件的最新修改时间（所有段落应该有相同的 lastModified）
+        return matchingResults[0].lastModified as number;
+      }
+      return null; // 文件不存在于数据库中
+    } catch (error) {
+      console.error(`Error querying lastModified for ${filePath}:`, error);
+      return null; // 查询失败，返回 null 表示需要处理
+    }
+  }
 }
 
 // FileWatcher 类
@@ -179,10 +230,27 @@ class FileWatcher {
         return;
       }
 
+      // 检查文件是否已存在于数据库中且未修改
+      const dbLastModified = await this.vectorService.getFileLastModified(filePath);
+      const fileLastModified = stats.mtime.getTime();
+      
+      if (dbLastModified !== null && dbLastModified === fileLastModified) {
+        // 文件已存在且未修改，跳过处理
+        console.error(`Skipping unchanged file: ${filePath}`);
+        return;
+      }
+      
+      if (dbLastModified !== null) {
+        console.error(`File modified, reprocessing: ${filePath} (DB: ${dbLastModified}, FS: ${fileLastModified})`);
+      } else {
+        console.error(`New file, processing: ${filePath}`);
+      }
+
+      // 文件不存在或已修改，需要处理
       const content = readFileSync(filePath, 'utf-8');
       const paragraphs = content.split('\n\n').filter(p => p.trim().length > 0);
 
-      // 先删除该文件的所有旧记录
+      // 先删除该文件的所有旧记录（如果存在）
       await this.vectorService.deleteByFilePath(filePath);
 
       // 为每个段落创建向量并插入
@@ -262,12 +330,7 @@ async function main() {
   // OBSIDIAN_PATH 已经在启动时检查过，这里可以安全使用
   const fileWatcher = new FileWatcher(vectorService, OBSIDIAN_PATH!);
 
-  // 全量扫描
-  await fileWatcher.fullScan();
-
-  // 开始监听
-  fileWatcher.startWatching();
-
+  // 先启动 MCP Server（不等待全量扫描完成）
   // 创建 MCP Server
   const server = new McpServer(
     {
@@ -324,11 +387,24 @@ async function main() {
     }
   );
 
-  // 启动 MCP Server
+  // 启动 MCP Server（立即启动，不等待全量扫描）
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
   console.error('Obsidian Lumina MCP Server started');
+
+  // 在后台异步执行全量扫描和开始监听（不阻塞 MCP Server）
+  // 这样服务器可以快速启动，全量扫描在后台进行
+  (async () => {
+    try {
+      // 全量扫描
+      await fileWatcher.fullScan();
+      // 开始监听
+      fileWatcher.startWatching();
+    } catch (error) {
+      console.error('Error during background scan:', error);
+    }
+  })();
 }
 
 main().catch((error) => {
