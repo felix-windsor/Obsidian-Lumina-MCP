@@ -17,6 +17,10 @@ dist/
 .lancedb/
 *.lancedb
 
+# Markdown files (except README.md)
+*.md
+!README.md
+
 # Logs
 logs/
 *.log

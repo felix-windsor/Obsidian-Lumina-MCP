@@ -313,8 +313,8 @@ ollama pull nomic-embed-text
 
 完成以下所有验证项后，可以认为服务器已正确配置:
 
-- [ ] 环境准备完成（Node.js、Ollama、模型）
-- [ ] 代码编译成功
+- [x] 环境准备完成（Node.js、Ollama、模型）
+- [x] 代码编译成功
 - [ ] 服务器能够启动
 - [ ] 文件监控正常工作
 - [ ] 全量扫描完成
@@ -322,6 +322,8 @@ ollama pull nomic-embed-text
 - [ ] `search_notes` 工具能够调用
 - [ ] 搜索结果合理
 - [ ] Claude Desktop 能够使用（如果适用）
+
+**当前进度**: 2/9 已完成 ✅
 
 ## 下一步
 

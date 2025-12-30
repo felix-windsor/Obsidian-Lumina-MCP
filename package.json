@@ -6,8 +6,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node --esm src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx src/index.ts",
+    "test": "tsc scripts/test-basic.ts --outDir dist/scripts --module nodenext --target esnext --moduleResolution nodenext --esModuleInterop && node dist/scripts/test-basic.js",
+    "test:basic": "tsc scripts/test-basic.ts --outDir dist/scripts --module nodenext --target esnext --moduleResolution nodenext --esModuleInterop && node dist/scripts/test-basic.js"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@types/node": "^25.0.3",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }

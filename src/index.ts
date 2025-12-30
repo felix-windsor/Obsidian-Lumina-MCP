@@ -143,10 +143,12 @@ class VectorService {
 
   async deleteByFilePath(filePath: string) {
     // LanceDB 的删除操作使用 SQL 谓词字符串
+    // 注意：列名是大小写敏感的，需要使用双引号或正确的列名
     try {
       // 转义单引号以防止 SQL 注入
       const escapedPath = filePath.replace(/'/g, "''");
-      await this.table.delete(`filePath = '${escapedPath}'`);
+      // 使用双引号包裹列名以确保大小写正确
+      await this.table.delete(`"filePath" = '${escapedPath}'`);
     } catch (error) {
       console.error(`Error deleting records for ${filePath}:`, error);
       // 删除失败不影响主流程，继续执行
