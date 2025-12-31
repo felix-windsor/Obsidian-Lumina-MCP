@@ -1,8 +1,14 @@
 # Obsidian Lumina MCP
 
+<div align="center">
+
+![Obsidian Lumina MCP](./assets/obsidian-mcp.jpg)
+
 > **Lumina** (拉丁语：光、启迪) - 为您的 Obsidian 笔记带来智能搜索的"光"
 
 一个基于 Model Context Protocol (MCP) 的 Obsidian 笔记向量搜索服务器。通过语义搜索技术，让 AI 助手能够智能地理解和搜索您的 Obsidian 笔记内容。
+
+</div>
 
 ## ✨ 项目名称来源
 
